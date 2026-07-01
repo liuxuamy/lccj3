@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>课堂连词成句 · 极简版</title>
+    <style>
+        /* ===== 极简 · 淡紫 ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
+        body { min-height: 100vh; background: #F0E8F5; display: flex; justify-content: center; align-items: center; font-family: 'Comic Sans MS', 'PingFang SC', 'Microsoft YaHei', sans-serif; padding: 20px; }
+        .game-container { width: 100%; max-width: 960px; background: rgba(255,255,255,0.75); backdrop-filter: blur(4px); border-radius: 40px; padding: 30px 32px 36px; box-shadow: 0 8px 32px rgba(120,80,140,0.10); border: 1px solid rgba(220,200,235,0.3); }
+        .title { text-align: center; font-size: 3.8rem; font-weight: 700; color: #7A5D8C; letter-spacing: 6px; margin-bottom: 18px; text-shadow: 0 2px 12px rgba(122,93,140,0.12); }
+        .title .light { font-weight: 300; opacity: 0.6; font-size: 2.4rem; }
+        .sentence-hint { text-align: center; font-size: 1.0rem; color: #A68AB8; margin-bottom: 24px; letter-spacing: 2px; }
+        .sentence-hint span { background: #F5EDF9; padding: 4px 22px; border-radius: 40px; border: 1px solid #E6D8EE; color: #6F5480; }
+        .words-area { min-height: 110px; background: #F8F2FC; border-radius: 28px; padding: 22px 24px; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 16px 18px; margin-bottom: 28px; border: 1.5px dashed #DCCBE6; }
+        .words-area .placeholder-hint { color: #C7B5D3; font-size: 1.0rem; letter-spacing: 2px; }
+        .word-card { display: inline-block; padding: 12px 28px; border-radius: 16px; font-size: 1.7rem; font-weight: 700; color: #2F2336; background: #FFFFFF; border: 1px solid rgba(200,180,215,0.3); box-shadow: 0 2px 8px rgba(100,70,120,0.06); transition: all 0.18s ease; cursor: pointer; letter-spacing: 1px; }
+        .word-card:hover { transform: translateY(-3px); box-shadow: 0 6px 16px rgba(100,70,120,0.10); border-color: #BEAAD0; }
+        .word-card:active { transform: translateY(0px) scale(0.97); }
+        @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-10px)} 40%{transform:translateX(10px)} 60%{transform:translateX(-6px)} 80%{transform:translateX(6px)} }
+        .word-card.shake { animation: shake 0.4s ease forwards; border-color: #E0B0B0 !important; background: #FFF5F5 !important; }
+        @keyframes flyOut { 0%{opacity:1;transform:scale(1) translateY(0)} 50%{opacity:0.8;transform:scale(1.08) translateY(-20px)} 100%{opacity:0;transform:scale(0.7) translateY(40px)} }
+        .word-card.fly-out { animation: flyOut 0.45s ease forwards; pointer-events: none; }
+        .wooden-box { width: 100%; min-height: 110px; background: #DFD0BD; background-image: repeating-linear-gradient(90deg, rgba(190,170,145,0.15) 0px, rgba(190,170,145,0.15) 2px, transparent 2px, transparent 10px), repeating-linear-gradient(0deg, rgba(170,150,130,0.08) 0px, rgba(170,150,130,0.08) 1px, transparent 1px, transparent 14px); border-radius: 24px; border: 2px solid #C8B49C; box-shadow: inset 0 2px 8px rgba(140,115,95,0.20), 0 4px 16px rgba(140,115,95,0.08); padding: 20px 28px; display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 10px 8px; position: relative; }
+        .wooden-box .deco { position: absolute; font-size: 1.8rem; pointer-events: none; opacity: 0.15; color: #4F3F2F; }
+        .wooden-box .deco.d1 { bottom: 8px; right: 18px; font-size: 2.4rem; opacity: 0.10; }
+        .wooden-box .deco.d2 { top: 8px; left: 18px; font-size: 2.0rem; opacity: 0.10; }
+        .wooden-box .word-card { padding: 8px 20px; font-size: 1.5rem; border-radius: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.04); cursor: default; border-color: rgba(180,160,140,0.2); animation: popIn 0.4s cubic-bezier(0.22,0.61,0.36,1) forwards; background: #FEFCF8; }
+        .wooden-box .word-card:hover { transform: none; box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        @keyframes popIn { 0%{opacity:0;transform:scale(0.7) translateY(16px)} 100%{opacity:1;transform:scale(1) translateY(0)} }
+        .wooden-box .empty-hint { color: #B8A28C; font-size: 1.0rem; letter-spacing: 3px; opacity: 0.7; width: 100%; text-align: center; }
+        .nav-buttons { display: flex; justify-content: center; gap: 28px; margin-top: 32px; flex-wrap: wrap; }
+        .btn { padding: 14px 48px; border: none; border-radius: 60px; font-size: 1.5rem; font-weight: 700; font-family: inherit; cursor: pointer; transition: all 0.2s ease; letter-spacing: 4px; transform: translateY(-2px); border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 4px 12px rgba(0,0,0,0.04); }
+        .btn:active { transform: translateY(2px); box-shadow: 0 1px 4px rgba(0,0,0,0.04); }
+        .btn:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+        .btn-prev { background: #D5C1E6; color: #3F2E4A; }
+        .btn-prev:hover { background: #CBB2DE; }
+        .btn-next { background: #B5D4D9; color: #2E4045; }
+        .btn-next:hover { background: #A6C8CE; }
+        .btn:disabled { opacity: 0.45; transform: translateY(0px); cursor: not-allowed; filter: grayscale(0.2); }
+        .btn:disabled:hover { transform: translateY(0px); }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(60,40,70,0.30); backdrop-filter: blur(6px); z-index: 999; justify-content: center; align-items: center; }
+        .modal-overlay.active { display: flex; }
+        .modal-box { background: #FFFFFF; border-radius: 48px; padding: 40px 48px 36px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 24px 64px rgba(60,40,70,0.15); border: 1px solid #EADCF2; }
+        .modal-box .big-emoji { font-size: 3.6rem; display: block; margin-bottom: 6px; }
+        .modal-box h2 { font-size: 2.8rem; color: #7A5D8C; letter-spacing: 4px; margin: 6px 0 8px; }
+        .modal-box .sub { font-size: 1.0rem; color: #A68AB8; margin-bottom: 24px; letter-spacing: 2px; }
+        .modal-box .btn-close-modal { background: #E3D4EC; border: none; border-radius: 60px; padding: 12px 44px; font-size: 1.3rem; font-weight: 700; color: #3F2E4A; cursor: pointer; transition: all 0.2s ease; letter-spacing: 2px; }
+        .modal-box .btn-close-modal:hover { background: #D5C1E6; transform: scale(1.02); }
+        @media (max-width: 700px) { .game-container { padding: 20px 16px 28px; } .title { font-size: 2.6rem; } .title .light { font-size: 1.8rem; } .word-card { padding: 8px 18px; font-size: 1.3rem; } .words-area { min-height: 80px; padding: 16px 14px; gap: 12px 14px; } .wooden-box { min-height: 80px; padding: 16px 18px; } .wooden-box .word-card { padding: 6px 14px; font-size: 1.2rem; } .btn { padding: 10px 28px; font-size: 1.2rem; } .modal-box { padding: 28px 24px; } .modal-box h2 { font-size: 2.2rem; } .nav-buttons { gap: 16px; } .wooden-box .deco { display: none; } }
+        @media (max-width: 440px) { .title { font-size: 2.0rem; } .word-card { padding: 6px 12px; font-size: 1.1rem; } .words-area { gap: 8px 10px; padding: 12px 10px; min-height: 70px; } .wooden-box .word-card { padding: 4px 10px; font-size: 1.0rem; } .btn { padding: 8px 18px; font-size: 1.0rem; } .sentence-hint span { font-size: 0.8rem; padding: 2px 14px; } }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 class="title"><span class="light">✦</span> 课堂连词成句 <span class="light">✦</span></h1>
+        <div class="sentence-hint"><span id="sentenceProgress">📖 第 1 / 3 句</span></div>
+        <div class="words-area" id="wordsArea"><span class="placeholder-hint">· 按顺序点击词语 ·</span></div>
+        <div class="wooden-box" id="woodenBox">
+            <span class="deco d1">⸙</span><span class="deco d2">⸙</span>
+            <span class="empty-hint" id="emptyHint">⌂ 等待词语放入</span>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" id="prevBtn" disabled>上一句</button>
+            <button class="btn btn-next" id="nextBtn">下一句</button>
+        </div>
+    </div>
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <span class="big-emoji">✧</span>
+            <h2>你太棒啦！</h2>
+            <p class="sub">句子完整连成，继续挑战吧</p>
+            <button class="btn-close-modal" id="modalCloseBtn">知道啦</button>
+        </div>
+    </div>
+    <script>
+        const SENTENCES = [
+            { words: ['昨天', '上午', '你', '在', '做', '什么', '呢？'] },
+            { words: ['他', '在', '学做', '中国菜', '呢。'] },
+            { words: ['我', '在', '写作业', '呢。'] }
+        ];
+        const COLOR_PALETTE = ['#F2E6FF','#E6F0FF','#FFEDE6','#E6FFED','#FFE6F0','#F0FFE6','#F5ECFF','#E8F4F8','#FDF0E8','#E8F5E8','#F5E8F0','#F0F0FF'];
+        let state = { currentIndex:0, currentStep:0, remaining:[], selected:[], isComplete:false, isAnimating:false };
+        const wordsArea = document.getElementById('wordsArea');
+        const woodenBox = document.getElementById('woodenBox');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const modalOverlay = document.getElementById('modalOverlay');
+        const modalCloseBtn = document.getElementById('modalCloseBtn');
+        const sentenceProgress = document.getElementById('sentenceProgress');
+
+        function shuffle(a) { for (let i=a.length-1; i>0; i--) { let j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+        function getRandomColor(exclude=[]) { let avail=COLOR_PALETTE.filter(c=>!exclude.includes(c)); return avail.length? avail[Math.floor(Math.random()*avail.length)] : COLOR_PALETTE[0]; }
+        function assignColors(words) { let used=[]; return words.map(t=>{ let c=getRandomColor(used); used.push(c); return {text:t, color:c}; }); }
+        function darken(hex, a) { let r=parseInt(hex.slice(1,3),16)-a, g=parseInt(hex.slice(3,5),16)-a, b=parseInt(hex.slice(5,7),16)-a; r=Math.max(0,r); g=Math.max(0,g); b=Math.max(0,b); return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`; }
+
+        function createCard(text, color) { let div=document.createElement('div'); div.className='word-card'; div.textContent=text; div.style.backgroundColor=color; div.style.borderColor=darken(color,15); return div; }
+
+        function renderWords() {
+            wordsArea.innerHTML='';
+            if(state.remaining.length===0) { let h=document.createElement('span'); h.className='placeholder-hint'; h.textContent='✓ 全部完成，继续下一句吧'; wordsArea.appendChild(h); return; }
+            state.remaining.forEach(item=>{ let card=createCard(item.text, item.color); card.dataset.text=item.text; wordsArea.appendChild(card); });
+        }
+
+        function renderWoodenBox() {
+            let decos=woodenBox.querySelectorAll('.deco');
+            woodenBox.innerHTML='';
+            decos.forEach(d=>woodenBox.appendChild(d));
+            if(state.selected.length===0) { let h=document.createElement('span'); h.className='empty-hint'; h.id='emptyHint'; h.textContent='⌂ 等待词语放入'; woodenBox.appendChild(h); return; }
+            state.selected.forEach(item=>{ let card=createCard(item.text,item.color); card.style.cursor='default'; card.style.backgroundColor='#FEFCF8'; card.style.borderColor='#DCCBE6'; card.classList.add('in-box'); woodenBox.appendChild(card); });
+        }
+
+        function updateProgress() { let total=SENTENCES.length; let idx=state.currentIndex+1; sentenceProgress.textContent=`📖 第 ${idx} / ${total} 句`; prevBtn.disabled=state.currentIndex===0; nextBtn.disabled=state.currentIndex===total-1; }
+
+        function loadSentence(index) {
+            let sentence=SENTENCES[index];
+            let wordsWithColor=assignColors(sentence.words);
+            state.currentStep=0; state.selected=[]; state.isComplete=false; state.isAnimating=false;
+            state.remaining=shuffle(wordsWithColor.map((w,i)=>({...w,id:i,originalIndex:i})));
+            modalOverlay.classList.remove('active');
+            renderWords(); renderWoodenBox(); updateProgress();
+        }
+
+        function handleWordClick(e) {
+            let card=e.target.closest('.word-card');
+            if(!card) return;
+            if(state.isAnimating||state.isComplete) return;
+            if(card.closest('.wooden-box')) return;
+            let text=card.dataset.text;
+            let currentSentence=SENTENCES[state.currentIndex];
+            let correctWord=currentSentence.words[state.currentStep];
+            if(text===correctWord) {
+                state.isAnimating=true;
+                let idx=state.remaining.findIndex(r=>r.text===text);
+                if(idx===-1) { state.isAnimating=false; return; }
+                let item=state.remaining[idx];
+                state.remaining.splice(idx,1);
+                state.selected.push({text:item.text, color:item.color});
+                card.classList.add('fly-out');
+                renderWoodenBox();
+                setTimeout(()=>{
+                    renderWords();
+                    state.currentStep++;
+                    state.isAnimating=false;
+                    if(state.currentStep===currentSentence.words.length) {
+                        state.isComplete=true;
+                        setTimeout(()=>{ modalOverlay.classList.add('active'); }, 350);
+                    }
+                }, 400);
+            } else {
+                card.classList.add('shake');
+                setTimeout(()=>{ card.classList.remove('shake'); }, 420);
+            }
+        }
+
+        function goToPrev() { if(state.currentIndex>0) { state.currentIndex--; loadSentence(state.currentIndex); } }
+        function goToNext() { if(state.currentIndex<SENTENCES.length-1) { state.currentIndex++; loadSentence(state.currentIndex); } }
+
+        wordsArea.addEventListener('click', handleWordClick);
+        prevBtn.addEventListener('click', goToPrev);
+        nextBtn.addEventListener('click', goToNext);
+        modalCloseBtn.addEventListener('click', ()=>modalOverlay.classList.remove('active'));
+        modalOverlay.addEventListener('click', (e)=>{ if(e.target===modalOverlay) modalOverlay.classList.remove('active'); });
+        document.addEventListener('keydown', (e)=>{
+            if(e.key==='ArrowLeft'&&!prevBtn.disabled) goToPrev();
+            if(e.key==='ArrowRight'&&!nextBtn.disabled) goToNext();
+            if((e.key==='Enter'||e.key===' ')&&modalOverlay.classList.contains('active')) { e.preventDefault(); modalOverlay.classList.remove('active'); }
+        });
+        loadSentence(0);
+    </script>
+</body>
+</html>
